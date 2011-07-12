@@ -21,12 +21,12 @@ module Liquor
   # catch all
   class Drop
     attr_writer :context
-    
-    class_inheritable_reader :liquor_attributes
-    write_inheritable_attribute :liquor_attributes, [:id]
 
-    class_inheritable_reader :liquor_named_scopes
-    write_inheritable_attribute :liquor_named_scopes, []
+    class_inheritable_reader :liquor_attributes
+    write_inheritable_attribute :liquor_attributes, []
+
+    class_inheritable_reader :liquor_scopes
+    write_inheritable_attribute :liquor_scopes, []
     attr_reader :source
 
     class_inheritable_reader :has_manies
@@ -35,7 +35,23 @@ module Liquor
     def logger
       Rails.logger
     end
-    
+
+    def self.allow_all_methods(allow = true)
+      if allow
+        class_eval <<-"END"
+          def before_method(method)
+            @source.send(method.to_sym)
+          end
+
+          def respond_to?(val)
+            return true if @source.respond_to?(val.to_sym)
+            return true if liquor_attributes.include? val.to_sym
+            super
+          end
+        END
+      end
+    end
+        
     def self.has_one(name)
       self.instance_eval do
         define_method(name) do
@@ -88,8 +104,8 @@ module Liquor
      @source.id
     end
 
-    def has_named_scope?(meth)
-      liquor_named_scopes.include?(meth.to_sym)
+    def has_scope?(meth)
+      liquor_scopes.include?(meth.to_sym)
     end
 
     def has_many?(meth)
@@ -177,8 +193,8 @@ module Liquor
         @parent.send :liquify, *collection
       end
 
-      def self.liquor_named_scopes
-        @parent.class.liquor_named_scopes
+      def self.liquor_scopes
+        @parent.class.liquor_scopes
       end
 
       #
@@ -199,13 +215,13 @@ module Liquor
         @parent.send :liquify, *@collection
       end
 
-      def has_named_scope?(meth)
-        @klass.liquor_named_scopes.include?(meth.to_sym)
+      def has_scope?(meth)
+        @klass.liquor_scopes.include?(meth.to_sym)
       end
 
       private
         def method_missing(meth, *args)
-          if has_named_scope?(meth)
+          if has_scope?(meth)
             converted_args = args.collect{|arg| 
               if arg.is_a? DropProxy
                 arg.current
