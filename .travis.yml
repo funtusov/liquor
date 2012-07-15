@@ -11,3 +11,4 @@ branches:
     - master
     - rails
     - rails32
+    - 2.0
