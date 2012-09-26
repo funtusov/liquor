@@ -55,7 +55,7 @@ def nil.to_liquor # :nodoc:
   self
 end
 
-class ActiveRecord::Relation
+class Mongoid::Relation
   def to_liquor
     self
   end
