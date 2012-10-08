@@ -61,6 +61,12 @@ class Mongoid::Relation
   end
 end
 
+class Moped::BSON::ObjectId
+  def to_liquor
+    self
+  end
+end
+
 class ActionDispatch::Request
   def to_liquor
     Liquor::RequestDrop.new self

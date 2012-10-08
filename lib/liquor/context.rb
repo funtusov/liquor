@@ -183,7 +183,7 @@ module Liquor
       
       variable = variable.to_liquor
       
-      if variable.class != ActiveRecord::Relation
+      if variable.class != Mongoid::Relation
         variable.context = self if variable.respond_to?(:context=)
       end
       return variable
@@ -219,7 +219,7 @@ module Liquor
           # Also when 'my_object.referenced_objects' expression evaluates, the 'object' should be a DropProxy, but you can find
           # that 'object = res.to_liquor' will convert it into an array. So 'to_liquor' method was defined in the DropProxy and always returns the itself.
           #
-          if object.class == ActiveRecord::Relation && (['size', 'first', 'last', 'paginate'].include?(part) || part.is_a?(Integer))
+          if object.class == Mongoid::Relation && (['size', 'first', 'last', 'paginate'].include?(part) || part.is_a?(Integer))
             if part.is_a?(Integer)
               res = object[part]
             else
@@ -268,7 +268,7 @@ module Liquor
     end
     
     def lookup_and_evaluate(obj, key)
-      if obj.class != ActiveRecord::Relation && (value = obj[key]).is_a?(Proc) && obj.respond_to?(:[]=)
+      if obj.class != Mongoid::Relation && (value = obj[key]).is_a?(Proc) && obj.respond_to?(:[]=)
         obj[key] = (value.arity == 0 ) ? value.call : value.call(self)
       else
         value
